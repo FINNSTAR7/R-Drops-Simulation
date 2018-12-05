@@ -1,0 +1,50 @@
+setwd(" [where you want the data to save to] "); #Ex. C:/Users/FINNSTAR7/Desktop/R Stuff
+probs = c(1,1,1);
+samples = 1000000;
+
+
+start = Sys.time();
+if (sum(probs) > 1) probs = probs / sum(probs);
+x = 0:length(probs); sum_data = 0; iterations = 1;
+for (l in 1:iterations) {
+    sample_data = 0;
+    for (k in 1:samples) {
+        count = integer(length(probs) + 1);
+        while (sum(count) < 100000) {
+            b = 0;
+            j = sample(x, 1, replace = TRUE, prob = c(1-sum(probs),probs));
+            if (j >= 1) {
+                count[j] = count[j] + 1;
+            } else {
+                count[length(probs) + 1] = count[length(probs) + 1] + 1;
+            };
+            
+            for (i in 1:length(probs)) {
+                if (count[i] >= 1) b = b + 1;
+            };  if (b == length(probs)) break;
+        };
+        if (is.na(sample_data[sum(count)])) sample_data[sum(count)] = 0;
+        sample_data[sum(count)] = sample_data[sum(count)] + 1;
+    };
+    for (i in 1:length(sample_data)) {
+        if (is.na(sample_data[i])) sample_data[i] = 0;
+        if (is.na(sum_data[i])) sum_data[i] = 0;
+        sum_data[i] = sum_data[i] + sample_data[i];
+    };
+}; i = length(sum_data);
+avg_data = array(0, c(i,2));
+avg_data[1:i,1] = sum_data / iterations;
+avg_data[1:length(probs),2] = probs; time = Sys.time() - start;
+
+write.table(avg_data, "avg_data.txt", quote = FALSE, sep="\t",
+    col.name = FALSE);
+
+avg_data[1:i,1] = avg_data[1:i,1] / samples;
+plot(avg_data[1:i,1],main=bquote(paste(.(iterations)," Iterations of ",
+    .(samples)," Samples")), xlab=bquote(paste("Number of Runs")),
+     ylab=bquote(paste("Frequency")));
+
+for (i in 1:length(sum_data)) {
+    avg_data[i,1] = avg_data[i,1] * i;
+};  average = sum(avg_data[1:i,1]);
+time; average;
